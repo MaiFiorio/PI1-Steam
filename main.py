@@ -1,6 +1,11 @@
-from fastapi import FastAPI, Depends
+from  import FastAPI, Depends
 import pandas as pd
 import numpy as np
+import ast
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.sparse import hstack, csr_matrix
+
 # uvicorn main:app --reload
 #Rutas en GitHug
 # df_steam = pd.read_csv("./Bases de datos/Archivos Post ETL/steam_post_etl.csv", sep=';', on_bad_lines='skip')
@@ -202,4 +207,68 @@ async def developer_reviews_analysis( desarrolladora : str ):
     }
 
     return reseñas
-    
+
+#________MODELO DE ML_________
+@app.get('/sistema_recomendacion_por_genero/{item_id}')
+async def recomendar_juegos_genero(item_id : int):
+    """ Se consulta  un item_id, y se recomiendan 5 juegos basados 
+    en su similitud respecto a sus generos respectivos"""
+    try:
+        # Cargar los dataframes
+        df_steam =  pd.read_csv("./Bases de datos/Archivos Post ETL/steam_post_etl.csv", sep=';', on_bad_lines='skip', usecols=['item_id', 'title', 'genres']) 
+        # df_reviews = pd.read_csv(r"M:\Documentos\Mai\Henry\Cursado\P.I. 1\Bases de datos\Archivos Post ETL\reviews_post_etl.csv", sep=';', usecols=['item_id', 'sentiment_analysis'])
+       
+        # Verificar si el item_id existe en el dataframe
+        if item_id not in df_steam['item_id'].values:
+            raise ValueError(f"El item_id {item_id} no está en la base de datos.")
+
+        # Filtrar el dataframe de Steam para obtener solo los juegos relevantes
+        df_steam = df_steam.dropna(subset=['genres'])  # Eliminar filas con NaN en géneros
+
+        # Obtener el género del juego buscado
+        game_genres_str = df_steam[df_steam['item_id'] == item_id]['genres'].values[0]
+        game_genres = ast.literal_eval(game_genres_str)
+        
+        # verificar si el juego no tiene géneros válidos
+        if not game_genres_str or game_genres_str == '[]':
+            raise ValueError(f"El juego con item_id {item_id} no tiene géneros asignados, por lo que no podemos darte una recomendación para géneros similares.")
+
+
+        # Filtro los juegos que tengan al menos alguno de esos generos y restablecer indices
+        filtered_df_steam = df_steam[df_steam['genres'].apply(lambda x: any(genre in eval(x) for genre in game_genres))]
+        filtered_df_steam = filtered_df_steam.reset_index(drop=True)
+
+        # Si no hay suficientes juegos similares en el filtro
+        if filtered_df_steam.shape[0] <= 1:
+            raise ValueError(f"No se encontraron suficientes juegos similares al juego con item_id {item_id}.")
+
+        # Vectorizar la columna 'genres':
+        # Obj: Convertir el texto de la columna genres en una representación numérica que pueda ser utilizada para calcular similitudes.
+        tfidf = TfidfVectorizer()
+        tfidf_matrix = tfidf.fit_transform(filtered_df_steam['genres'])
+        
+         # Obtener el índice del juego buscado
+        idx = filtered_df_steam.index[filtered_df_steam['item_id'] == item_id].tolist()[0]
+
+        # Calcular la similitud coseno entre todos los juegos
+        # Obj: Calcular la similitud entre todos los juegos basándose en sus géneros.
+        sim_scores = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
+   
+
+
+        #Calcular las puntuaciones de similitud entre el juego buscado y todos los demás juegos    
+        sim_scores_idx = list(enumerate(sim_scores))
+
+        # Ordenar las puntuaciones de similitud en orden descendente (juegos más similares primero)
+        sim_scores_idx = sorted(sim_scores_idx, key=lambda x: x[1], reverse=True)
+
+        # Obtener los índices de los juegos más similares (excluyendo el propio juego)
+        # Esto se hace porque la primera entrada (sim_scores[0]) es el propio juego, que tendrá una similitud de 1  y no lo queremos en las recomendaciones.
+        top_indices = [i[0] for i in sim_scores_idx[1:6]]
+
+        # Retornar los títulos de los juegos recomendados
+        return filtered_df_steam.iloc[top_indices][['title', 'genres']]
+    except ValueError as e:
+        return str(e)  # Retornar el mensaje de error si ocurre
+    except Exception as e:
+        return f"Ha ocurrido un error inesperado: {str("Lo solucionaremos en breve")}"
