@@ -270,5 +270,4 @@ async def recomendar_juegos_genero(item_id : int):
         return filtered_df_steam.iloc[top_indices][['title', 'genres']]
     except ValueError as e:
         return str(e)  # Retornar el mensaje de error si ocurre
-    except Exception as e:
-        return f"Ha ocurrido un error inesperado: {str("Lo solucionaremos en breve")}"
+
