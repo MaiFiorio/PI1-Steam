@@ -1,4 +1,4 @@
-from  import FastAPI, Depends
+from fastapi import FastAPI, Depends    
 import pandas as pd
 import numpy as np
 import ast
