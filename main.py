@@ -112,9 +112,9 @@ async def UserForGenre( genero : str ):
     # Filtrar el DataFrame df_steam para obtener los juegos del género especificado
     df_steam_filtrado  = df_steam[df_steam['genres'].apply(lambda x: genero in x)]
 
-    # Unir df_steam_filtrado con df_items basado en 'item_id' para obtener los usuarios y horas jugadas para los juegos del género
-    df_combinado = pd.merge(df_steam_filtrado[['item_id', 'year',"genres"]], df_items[['user_id', 'item_id', 'playtime_forever']], on='item_id', how='inner')
-
+    # Unir df_steam_filtrado con df_items basado en 'item_id' para obtener los usuarios y horas jugadas para los juegos del género 
+    df_combinado = pd.merge(df_items[['user_id', 'item_id', 'playtime_forever']], df_steam_filtrado[['item_id', 'year']], on='item_id', how='inner')
+    
     # Agrupar por 'user_id' y sumar las horas jugadas para cada usuario
     horas_por_usuario = df_combinado.groupby('user_id')['playtime_forever'].sum().reset_index()
 
