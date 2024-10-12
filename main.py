@@ -113,15 +113,12 @@ async def UserForGenre( genero : str ):
     df_steam_filtrado  = df_steam[df_steam['genres'].apply(lambda x: genero in x)]
 
     # Unir df_steam_filtrado con df_items basado en 'item_id' para obtener los usuarios y horas jugadas para los juegos del género 
+    df_items.set_index('item_id', inplace=True)
+    df_steam_filtrado.set_index('item_id', inplace=True)
     df_combinado = pd.merge(df_items[['user_id', 'item_id', 'playtime_forever']], df_steam_filtrado[['item_id', 'year']], on='item_id', how='inner')
     
-    # Agrupar por 'user_id' y sumar las horas jugadas para cada usuario
-    horas_por_usuario = df_combinado.groupby('user_id')['playtime_forever'].sum().reset_index()
-
-    # Obtener el usuario con más horas jugadas
-    usuario_mas_horas = horas_por_usuario.loc[horas_por_usuario['playtime_forever'].idxmax(), 'user_id']
-
-    # Agrupar por año y sumar las horas jugadas para cada año
+    #Obtener el usuario con más horas jugadas y luego agrupar  por año
+    usuario_mas_horas = df_combinado.groupby('user_id')['playtime_forever'].sum().idxmax()
     horas_por_año_usuario = df_combinado[df_combinado['user_id'] == usuario_mas_horas].groupby('year')['playtime_forever'].sum().reset_index()
 
     # Convertir a la lista deseada de acumulación de horas jugadas por año
