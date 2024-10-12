@@ -120,8 +120,11 @@ async def UserForGenre( genero : str ):
     df_items.set_index('item_id', inplace=True)
     df_steam_filtrado.set_index('item_id', inplace=True)
     df_combinado = df_items.join(df_steam_filtrado[['year']], on='item_id', how='inner')
+   
+    # DIFERENTES OPCIONES DE PRUBA PARA OPTIMIZACIÓN DE MEMORIA
     # df_combinado = pd.merge(df_items[['user_id', 'playtime_forever']], df_steam_filtrado[['year']], left_index=True, right_index=True, how='inner')
     # df_combinado = pd.merge(df_steam_filtrado[['item_id', 'year',"genres"]], df_items[['user_id', 'item_id', 'playtime_forever']], on='item_id', how='inner')
+    
     # Filtrar para eliminar años iguales a 0
     df_combinado = df_combinado[df_combinado['year'] != 0]
     
