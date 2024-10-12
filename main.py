@@ -7,6 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse import hstack, csr_matrix
 
 # uvicorn main:app --reload
+
 #Rutas en GitHug
 # df_steam = pd.read_csv("./Bases de datos/Archivos Post ETL/steam_post_etl.csv", sep=';', on_bad_lines='skip')
 # df_items = pd.read_parquet("./Bases de datos/Archivos Post ETL/items_post_etl.csv", sep=';', on_bad_lines='skip')
@@ -39,6 +40,9 @@ async def developer( desarrollador : str ):
         
     #Filtrar juegos por desarrollador
     df_desarrollador = df_steam[df_steam['developer'] == desarrollador].copy()
+    
+    # Filtrar para eliminar años iguales a 0
+    df_desarrollador = df_desarrollador[df_desarrollador['year'] != 0]
     
     # Contar la cantidad de items por año
     cantidad_items_por_year = df_desarrollador.groupby('year').size().reset_index(name="cantidad_items")
@@ -118,13 +122,17 @@ async def UserForGenre( genero : str ):
     df_combinado = df_items.join(df_steam_filtrado[['year']], on='item_id', how='inner')
     # df_combinado = pd.merge(df_items[['user_id', 'playtime_forever']], df_steam_filtrado[['year']], left_index=True, right_index=True, how='inner')
     # df_combinado = pd.merge(df_steam_filtrado[['item_id', 'year',"genres"]], df_items[['user_id', 'item_id', 'playtime_forever']], on='item_id', how='inner')
+    # Filtrar para eliminar años iguales a 0
+    df_combinado = df_combinado[df_combinado['year'] != 0]
+    
     del df_steam_filtrado,  df_items
     
-    
+
     #Obtener el usuario con más horas jugadas y luego agrupar  por año
     usuario_mas_horas = df_combinado.groupby('user_id')['playtime_forever'].sum().idxmax()
     horas_por_año_usuario = df_combinado[df_combinado['user_id'] == usuario_mas_horas].groupby('year')['playtime_forever'].sum().reset_index()
-
+    del df_combinado
+    
     # Convertir a la lista deseada de acumulación de horas jugadas por año
     dicc_horas_por_year = [{'Año': row['year'], 'Horas': row['playtime_forever']} for index, row in horas_por_año_usuario.iterrows()]
 
