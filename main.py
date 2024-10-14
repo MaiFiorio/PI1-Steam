@@ -286,7 +286,7 @@ async def recomendar_juegos_genero(item_id : int):
         return str(e)  # Retornar el mensaje de error si ocurre
 
 #________MODELO DE ML: GENERO y ESPECIFICACIONES_________
-@app.get('/sistema_recomendacion_por_genero2/{item_id}')
+@app.get('/sistema_recomendacion_por_genero_specs/{item_id}')
 async def recomendar_juegos_genero_spec(item_id : int):
     """ Se consulta  un item_id, y se recomiendan 5 juegos basados 
         en su similitud respecto a sus generos y especificaciones"""
