@@ -28,7 +28,7 @@ app = FastAPI(
 #________________HOME_________________________
 @app.get('/')
 async def Home ():
-    return "Bienvenidos a la API para Consultas y recomendaciones de VideoJuegos"
+    return "Bienvenidos a la API para Consultas y Recomendaciones de VideoJuegos"
          
 #_________PRIMERA FUNCION: developer__________
 @app.get('/developer/{desarrollador}')
@@ -115,10 +115,14 @@ async def UserForGenre( genero : str ):
 
     # Filtrar el DataFrame df_steam para obtener los juegos del género especificado
     df_steam_filtrado  = df_steam[df_steam['genres'].apply(lambda x: genero in x)]
+    # Convertir la columna en str
+    df_steam_filtrado['item_id'] = df_steam['item_id'].astype(str)
+   
     del df_steam
     # Unir df_steam_filtrado con df_items basado en 'item_id' para obtener los usuarios y horas jugadas para los juegos del género 
     df_items.set_index('item_id', inplace=True)
     df_steam_filtrado.set_index('item_id', inplace=True)
+    
     df_combinado = df_items.join(df_steam_filtrado[['year']], on='item_id', how='inner')
    
     # DIFERENTES OPCIONES DE PRUBA PARA OPTIMIZACIÓN DE MEMORIA
@@ -220,7 +224,7 @@ async def developer_reviews_analysis( desarrolladora : str ):
 
     return reseñas
 
-#________MODELO DE ML_________
+#________MODELO DE ML: GENERO_________
 @app.get('/sistema_recomendacion_por_genero/{item_id}')
 async def recomendar_juegos_genero(item_id : int):
     """ Se consulta  un item_id, y se recomiendan 5 juegos basados 
@@ -281,3 +285,79 @@ async def recomendar_juegos_genero(item_id : int):
     except ValueError as e:
         return str(e)  # Retornar el mensaje de error si ocurre
 
+#________MODELO DE ML: GENERO y ESPECIFICACIONES_________
+@app.get('/sistema_recomendacion_por_genero2/{item_id}')
+async def recomendar_juegos_genero_spec(item_id : int):
+    """ Se consulta  un item_id, y se recomiendan 5 juegos basados 
+        en su similitud respecto a sus generos y especificaciones"""
+    # Cargar el dataframe
+    df_steam = pd.read_csv(r"M:\Documentos\Mai\Henry\Cursado\P.I. 1\Bases de datos\Archivos Post ETL\steam_post_etl.csv", sep=';', on_bad_lines='skip', usecols=['item_id', 'title', 'genres', 'specs'])
+    
+    # Verificar si el item_id existe en el dataframe, sino error
+    if item_id not in df_steam['item_id'].values:
+        raise ValueError(f"El item_id {item_id} no está en la base de datos.")
+
+    # Filtra el DataFrame para eliminar filas que tengan valores nulos en las columnas genres o specs, y reinicia los índices
+    df_steam = df_steam.dropna(subset=['genres', 'specs']).reset_index(drop=True)
+
+    # Selecciona la fila del DataFrame que corresponde al item_id buscado en la funcion
+    game_row = df_steam[df_steam['item_id'] == item_id]
+
+    # Verificar si se encontró el juego
+    if game_row.empty:
+        raise ValueError(f"No se encontró el juego con item_id {item_id}.")
+
+    # Extraer los géneros y especificaciones del juego encontrado
+    game_genres_str = game_row['genres'].values[0]
+    game_specs_str = game_row['specs'].values[0]
+    game_title = game_row['title'].values[0]
+    
+    #Convierte las cadenas de texto de game_genres_str y game_specs_str
+    game_genres = ast.literal_eval(game_genres_str) if isinstance(game_genres_str, str) else game_genres_str
+    game_specs = ast.literal_eval(game_specs_str) if isinstance(game_specs_str, str) else game_specs_str
+
+    # Unir en una sola fila Genero + Specs
+    genres_specs_item = list(set(game_specs + game_genres))
+
+    # Definir una función interna para Convertir las columnas de strings en listas
+    def combinar_generos_specs(row):
+        
+        genres = ast.literal_eval(row['genres']) if isinstance(row['genres'], str) else row['genres']
+        specs = ast.literal_eval(row['specs']) if isinstance(row['specs'], str) else row['specs']
+        
+        # Unir ambos en una sola lista y eliminar duplicados si los hubiera
+        return list(set(genres + specs))
+
+    # Aplicar la función a cada fila del dataframe y crear la nueva columna 'genres_mas_specs'
+    df_steam['genres_mas_specs'] = df_steam.apply(combinar_generos_specs, axis=1)
+
+    # Convertir cada lista en 'genres_mas_specs_str' en una cadena de texto
+    df_steam['genres_mas_specs_str'] = df_steam['genres_mas_specs'].apply(lambda x: ' '.join(x))
+
+    # Vectorizar la columna 'genres_mas_specs_str'
+    tfidf = TfidfVectorizer()
+    tfidf_matrix = tfidf.fit_transform(df_steam['genres_mas_specs_str'])
+
+    # Obtener el índice del juego buscado en el DataFrame
+    idx = df_steam.index[df_steam['item_id'] == item_id].tolist()[0]
+
+    # Calcular la similitud coseno entre el juego buscado y todos los juegos
+    sim_scores = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
+
+    # Calcular las puntuaciones de similitud entre el juego buscado y todos los demás juegos    
+    sim_scores_idx = list(enumerate(sim_scores))
+    # Ordenar las puntuaciones de similitud en orden descendente (juegos más similares primero)
+    sim_scores_idx = sorted(sim_scores_idx, key=lambda x: x[1], reverse=True)
+
+    # Obtener los índices de los juegos más similares (excluyendo el propio juego)
+    top_indices = [i[0] for i in sim_scores_idx[1:6]]
+
+    # Crear la respuesta estructurada
+    recomendaciones = df_steam.iloc[top_indices][['title', 'genres', 'specs']].to_dict(orient='records')
+    
+    respuesta = {
+        'Juego Buscado': game_title,
+        'Top 5 Recomendaciones': recomendaciones
+    }
+    
+    return respuesta
