@@ -291,7 +291,7 @@ async def recomendar_juegos_genero_spec(item_id : int):
     """ Se consulta  un item_id, y se recomiendan 5 juegos basados 
         en su similitud respecto a sus generos y especificaciones"""
     # Cargar el dataframe
-    df_steam =  pd.read_csv("./Bases de datos/Archivos Post ETL/steam_post_etl.csv", sep=';', on_bad_lines='skip', usecols=['item_id', 'title', 'genres']) 
+    df_steam =  pd.read_csv("./Bases de datos/Archivos Post ETL/steam_post_etl.csv", sep=';', on_bad_lines='skip', usecols=['item_id', 'title', 'genres','specs' ]) 
         
     # Verificar si el item_id existe en el dataframe, sino error
     if item_id not in df_steam['item_id'].values:
