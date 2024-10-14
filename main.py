@@ -262,11 +262,9 @@ async def recomendar_juegos_genero(item_id : int):
          # Obtener el índice del juego buscado
         idx = filtered_df_steam.index[filtered_df_steam['item_id'] == item_id].tolist()[0]
 
-        # Calcular la similitud coseno entre todos los juegos
-        # Obj: Calcular la similitud entre todos los juegos basándose en sus géneros.
+        # Calcular la similitud coseno entre el juego buscado y todos los juegos
         sim_scores = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
    
-
 
         #Calcular las puntuaciones de similitud entre el juego buscado y todos los demás juegos    
         sim_scores_idx = list(enumerate(sim_scores))
