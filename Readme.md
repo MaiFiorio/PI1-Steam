@@ -195,6 +195,6 @@ Enlace al video en el siguiente link: [VIDEO](https://drive.google.com/drive/fol
 
 ## Datos de contacto
 
-Nombre compelto: Maillen Fiorio Espinasse
-Mail: maillenfiorio@gmail.com
-Enlace a [LINKEDIN](www.linkedin.com/in/maillen-fiorio-data)
+* Nombre compelto: Maillen Fiorio Espinasse
+* Mail: maillenfiorio@gmail.com
+* Enlace a [LINKEDIN](www.linkedin.com/in/maillen-fiorio-data)
