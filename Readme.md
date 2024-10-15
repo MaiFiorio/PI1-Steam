@@ -7,7 +7,7 @@
 
 Se ha desarrollado el presente proyecto, el cual consiste principalmente en desplegar un sistema de recomendación de videojuegos para usuarios de la plataforma Steam como así también el desarrollo de algunas consultas mediante diversas funciones. El mismo intenta abarcar todas las fases de un proyecto de Machine Learning, desde la transformación de los datos y su preparación para el despliegue de una API mediante FastAPI y a través Render poder alojarlo.
 
-**`Plataforma Web`**: [https://store.steampowered.com/?l=spanish](^13^).
+**`Plataforma Web`**: **[link a STEAM]( https://store.steampowered.com/?l=spanish)**
 
 ## Base de Datos (Datasets)
 
@@ -186,7 +186,7 @@ Por otro lado, se realiza conceptualmente el mismo modelo pero no solo basandose
 La misma se desarrolla dentro del archivo principal: main.py.
 Se disponibilizaron los datos usando el framework FastAPI y su posterior deploy en Render.
 
-Se puede acceder a la misma mediante el siguiente link: [https://pi1-steam-kce0.onrender.com/docs#](^13^).
+Se puede acceder a la misma mediante el siguiente link: [LINK A RENDER](https://pi1-steam-kce0.onrender.com/docs#)**
 
 
 ## Video explicativo del proyecto y demostración del resultado de las consultas
