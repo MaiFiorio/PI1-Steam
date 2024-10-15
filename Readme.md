@@ -186,10 +186,15 @@ Por otro lado, se realiza conceptualmente el mismo modelo pero no solo basandose
 La misma se desarrolla dentro del archivo principal: main.py.
 Se disponibilizaron los datos usando el framework FastAPI y su posterior deploy en Render.
 
-Se puede acceder a la misma mediante el siguiente link: [LINK A RENDER](https://pi1-steam-kce0.onrender.com/docs#)**
+Se puede acceder a la misma mediante el siguiente link: [LINK A RENDER](https://pi1-steam-kce0.onrender.com/docs#)
 
 
 ## Video explicativo del proyecto y demostración del resultado de las consultas
 
-Enlace al video en el siguiente link: **[VIDEO](https://drive.google.com/drive/folders/1ifawAcFIee6r7KveZ17NYU2xZaeWOw-k?usp=drive_link)**
+Enlace al video en el siguiente link: [VIDEO](https://drive.google.com/drive/folders/1ifawAcFIee6r7KveZ17NYU2xZaeWOw-k?usp=drive_link)
 
+## Datos de contacto
+
+Nombre compelto: Maillen Fiorio Espinasse
+Mail: maillenfiorio@gmail.com
+Enlace a [LINKEDIN](www.linkedin.com/in/maillen-fiorio-data)
